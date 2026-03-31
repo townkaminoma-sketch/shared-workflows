@@ -1,0 +1,57 @@
+name: security-scan
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.11"
+      uv-version:
+        type: string
+        default: "0.10.9"
+      target-dir:
+        type: string
+        default: "src"
+        description: "Directory to scan with bandit (e.g. src)"
+      gitleaks-version:
+        type: string
+        default: "8.24.3"
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          version: ${{ inputs.uv-version }}
+
+      - name: Install project
+        run: uv sync --dev
+
+      - name: Install gitleaks
+        run: |
+          GITLEAKS_VERSION="${{ inputs.gitleaks-version }}"
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" | tar xz -C /usr/local/bin gitleaks
+          gitleaks version
+
+      - name: Install security tools
+        run: uv pip install pip-audit bandit git+https://github.com/townkaminoma-sketch/security-checker.git
+
+      - name: Run security scan
+        run: uv run repo-security-checker scan --target-dir ${{ inputs.target-dir }} --output security-report.json
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.json

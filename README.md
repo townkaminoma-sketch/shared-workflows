@@ -42,3 +42,24 @@ jobs:
 | Input | Default | Description |
 |-------|---------|-------------|
 | `script-path` | `"scripts/check_pr_invariants.py"` | Path to invariant check script |
+
+### security-scan
+
+Security scanning pipeline: gitleaks (secrets) + pip-audit (dependencies) + bandit (code).
+
+```yaml
+jobs:
+  scan:
+    uses: townkaminoma-sketch/shared-workflows/.github/workflows/security-scan.yml@main
+    with:
+      target-dir: "src"
+```
+
+#### Inputs
+
+| Input | Default | Description |
+|-------|---------|-------------|
+| `python-version` | `"3.11"` | Python version |
+| `uv-version` | `"0.10.9"` | uv version |
+| `target-dir` | `"src"` | Directory to scan with bandit |
+| `gitleaks-version` | `"8.24.3"` | Gitleaks binary version |
