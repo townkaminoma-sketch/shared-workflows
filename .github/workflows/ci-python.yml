@@ -16,8 +16,6 @@ on:
         description: "Optional shell command to run before tests (e.g. data generation)"
         type: string
         default: ""
-    secrets:
-      inherit: true
 
 jobs:
   test:
