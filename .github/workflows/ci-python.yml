@@ -1,0 +1,48 @@
+name: ci-python
+
+on:
+  workflow_call:
+    inputs:
+      python-version:
+        type: string
+        default: "3.11"
+      uv-version:
+        type: string
+        default: "0.10.9"
+      runs-on:
+        type: string
+        default: "ubuntu-latest"
+      pre-test-script:
+        description: "Optional shell command to run before tests (e.g. data generation)"
+        type: string
+        default: ""
+    secrets:
+      inherit: true
+
+jobs:
+  test:
+    runs-on: ${{ inputs.runs-on }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ inputs.python-version }}
+
+      - name: Install uv
+        run: pip install uv==${{ inputs.uv-version }}
+
+      - name: Sync dependencies
+        run: uv sync --dev
+
+      - name: Pre-test script
+        if: inputs.pre-test-script != ''
+        continue-on-error: true
+        run: ${{ inputs.pre-test-script }}
+
+      - name: Run tests
+        run: uv run pytest
+
+      - name: Run ruff
+        run: uv run ruff check .

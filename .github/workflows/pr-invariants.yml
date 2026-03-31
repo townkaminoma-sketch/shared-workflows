@@ -1,0 +1,23 @@
+name: pr-invariants
+
+on:
+  workflow_call:
+    inputs:
+      script-path:
+        type: string
+        default: "scripts/check_pr_invariants.py"
+
+jobs:
+  scope:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: PR invariant checks
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python3 ${{ inputs.script-path }}
